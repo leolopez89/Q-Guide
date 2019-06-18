@@ -48,20 +48,17 @@ class QGuide(QtGui.QMainWindow):
         self.connection = QDatabase()
 
         if not self.connection.check_opened_db():
-            QtGui.QMessageBox.critical(self,
-                                       'Error', 'Base de Datos no encontrada')
+            QtGui.QMessageBox.critical(self, 'Error', 'Base de Datos no encontrada')
 
-        self.resize(340, 450)
+        self.resize(740, 450)
 
-        size_policy = QtGui.QSizePolicy(
-            QtGui.QSizePolicy.Preferred,
-            QtGui.QSizePolicy.Preferred)
+        size_policy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Preferred)
         size_policy.setHorizontalStretch(0)
         size_policy.setVerticalStretch(0)
         size_policy.setHeightForWidth(self.sizePolicy().hasHeightForWidth())
         self.setSizePolicy(size_policy)
-        self.setMinimumSize(QtCore.QSize(340, 450))
-        self.setMaximumSize(QtCore.QSize(340, 450))
+        self.setMinimumSize(QtCore.QSize(740, 450))
+        # self.setMaximumSize(QtCore.QSize(740, 450))
 
         self.centralwidget = QtGui.QWidget(self)
 
@@ -90,10 +87,14 @@ class QGuide(QtGui.QMainWindow):
         self.setWindowIcon(QtGui.QIcon(':/images/q-guide.png'))
 
     def closeEvent(self, event):
-        QtGui.QMessageBox.information(self, "Q-Guide",
-                "El programa continuará ejecutándose en la bandeja del sistema."
-                "Para cerrar el programa, escoja <b>Cerrar</b> en el "
-                "menú contextual del icono de la bandeja.")
+        self.trayIcon.showMessage("Q-Guide",
+				_translate(None, "El programa continuará ejecutándose en la bandeja del sistema.", None), 
+                QtGui.QSystemTrayIcon.Information, 5000)
+        # QtGui.QMessageBox.information(self, "Q-Guide",
+				# _translate(None, 
+				# "El programa continuará ejecutándose en la bandeja del sistema."
+                # "Para cerrar el programa, escoja <b>Cerrar</b> en el "
+                # "menú contextual del icono de la bandeja.", None))
         self.hide()
         event.ignore()
 
@@ -103,50 +104,63 @@ class QGuide(QtGui.QMainWindow):
         self.spacerItem = QtGui.QSpacerItem(
             40,
             20,
-            QtGui.QSizePolicy.Expanding,
+            QtGui.QSizePolicy.Minimum,
             QtGui.QSizePolicy.Minimum)
         self.numberLine = QtGui.QLineEdit(self.centralwidget)
-        self.numberLine.setMinimumSize(QtCore.QSize(250, 0))
+        self.numberLine.setMinimumSize(QtCore.QSize(600, 0))
 
         self.nameLabel = QtGui.QLabel(self.centralwidget)
         self.nameLabel.setText(_translate(None, "Nombre:", None))
         self.spacerItem1 = QtGui.QSpacerItem(
             40,
             20,
-            QtGui.QSizePolicy.Expanding,
+            QtGui.QSizePolicy.Minimum,
             QtGui.QSizePolicy.Minimum)
         self.nameLine = QtGui.QLineEdit(self.centralwidget)
-        self.nameLine.setMinimumSize(QtCore.QSize(250, 0))
+        self.nameLine.setMinimumSize(QtCore.QSize(600, 0))
 
         self.addressLabel = QtGui.QLabel(self.centralwidget)
-        self.addressLabel.setText(_translate(None, "Dirección':", None))
+        self.addressLabel.setText(_translate(None, "Dirección:", None))
         self.spacerItem2 = QtGui.QSpacerItem(
             40,
             20,
-            QtGui.QSizePolicy.Expanding,
+            QtGui.QSizePolicy.Minimum,
             QtGui.QSizePolicy.Minimum)
         self.addressLine = QtGui.QLineEdit(self.centralwidget)
-        self.addressLine.setMinimumSize(QtCore.QSize(250, 0))
+        self.addressLine.setMinimumSize(QtCore.QSize(600, 0))
 
         self.pushButtonFix = QtGui.QPushButton(self.centralwidget)
-        self.pushButtonFix.setText(_translate(None, "Fijo", None))
+        self.pushButtonFix.setText(_translate(None, "&Fijo", None))
         self.pushButtonMovil = QtGui.QPushButton(self.centralwidget)
-        self.pushButtonMovil.setText(_translate(None, "Movil", None))
-
+        self.pushButtonMovil.setText(_translate(None, "&Movil", None))
+        
+        self.pushButtonMovil.setDefault(True)
         self.pushButtonMovil.clicked.connect(self.search_movil)
         self.pushButtonFix.clicked.connect(self.search_fix)
+        
+        self.checkButtonSearch = QtGui.QCheckBox(self.centralwidget)
+        self.checkButtonSearch.setText(_translate(None, "&Buscar solo el número (indexado)", None))
+        
+        self.checkButtonSearch.stateChanged.connect(self.processCheckAction)
+        self.checkButtonSearch.setChecked(True)        
 
     def create_table(self):
         self.tableWidget = QtGui.QTableView(self.centralwidget)
 
-        self.tableWidget.setItemDelegate(
-            QtSql.QSqlRelationalDelegate(self.tableWidget))
+        self.tableWidget.setItemDelegate(QtSql.QSqlRelationalDelegate(self.tableWidget))
         self.tableWidget.setSelectionMode(QtGui.QTableView.SingleSelection)
         self.tableWidget.setSelectionBehavior(QtGui.QTableView.SelectRows)
         self.tableWidget.resizeColumnsToContents()
         self.tableWidget.resizeRowsToContents()
         self.tableWidget.horizontalHeader().setStretchLastSection(True)
-
+        
+        self.tableWidget.horizontalHeader().setResizeMode(0, QtGui.QHeaderView.Fixed)
+        self.tableWidget.horizontalHeader().setResizeMode(1, QtGui.QHeaderView.Fixed)
+        self.tableWidget.horizontalHeader().setResizeMode(2, QtGui.QHeaderView.ResizeToContents)
+        
+        self.tableWidget.setSizePolicy(QtGui.QSizePolicy.Expanding,QtGui.QSizePolicy.Expanding)
+        
+        
         self.model = QModel(self)
         self.tableWidget.setModel(self.model)
 
@@ -166,10 +180,14 @@ class QGuide(QtGui.QMainWindow):
         self.addressHorizontalLayout.addItem(self.spacerItem2)
         self.addressHorizontalLayout.addWidget(self.addressLine)
 
+        self.checkHorizontalLayout = QtGui.QHBoxLayout()
+        self.checkHorizontalLayout.addWidget(self.checkButtonSearch)
+        
         self.verticalLayout = QtGui.QVBoxLayout()
         self.verticalLayout.addLayout(self.numberHorizontalLayout)
         self.verticalLayout.addLayout(self.nameHorizontalLayout)
         self.verticalLayout.addLayout(self.addressHorizontalLayout)
+        self.verticalLayout.addLayout(self.checkHorizontalLayout)
 
         self.buttonsHorizontalLayout = QtGui.QHBoxLayout()
         self.buttonsHorizontalLayout.addWidget(self.pushButtonFix)
@@ -181,8 +199,7 @@ class QGuide(QtGui.QMainWindow):
     def create_statusbar(self):
         self.statusbar = QtGui.QStatusBar(self)
         self.setStatusBar(self.statusbar)
-        self.statusbar.showMessage('Listo...')
-
+        self.statusbar.showMessage('Listo ...')
 
     def create_actions(self):
         self.minimizeAction = QtGui.QAction(QtGui.QIcon(':/images/minimize.png'),
@@ -214,7 +231,9 @@ class QGuide(QtGui.QMainWindow):
          self.trayIconMenu.addAction(self.quitAction)
          self.trayIcon = QtGui.QSystemTrayIcon(self)
          self.trayIcon.setContextMenu(self.trayIconMenu)
-
+         
+         self.trayIcon.activated.connect(self.processTrayAction)
+    
     def search_movil(self):
         nmbr = self.numberLine.text()
         nam = self.nameLine.text()
@@ -223,13 +242,17 @@ class QGuide(QtGui.QMainWindow):
             QtGui.QMessageBox.critical(
                 self,
                 'Error',
-                'No se pueden realizar consultas sobre campos vacios')
+                _translate(None, 'No se pueden realizar consultas sobre campos vacíos', None))
         else:
-            query = ("SELECT number, name, address FROM 'main'.'movil' WHERE number LIKE '%{nmbr}%' AND name LIKE '%{nam}%' AND address LIKE '%{addr}%';").format(nmbr=nmbr, nam=nam, addr=addr)
+            if (self.checkButtonSearch.isChecked()):
+                query = ("SELECT number, name, address, case  when province = 7 then 'Ciudad de La Habana'  when province = 22 then 'Santiago de Cuba'  when province = 21 then 'Guantánamo'  when province = 23 then 'Granma'  when province = 24 then 'Holguín'  when province = 31 then 'Las Tunas'  when province = 32 then 'Camagüey'  when province = 33 then 'Ciego de Ávila'  when province = 41 then 'Sancti Spíritus'  when province = 42 then 'Villa Clara'  when province = 43 then 'Cienfuegos'  when province = 45 then 'Matanzas'  when province = 46 then 'Isla de la Juventud'  when province = 47 then 'La Habana'  when province = 48 then 'Pinar del Río'  else province end as province FROM 'main'.'movil' WHERE number = '{nmbr}';").format(nmbr=nmbr)
+            else:
+                query = ("SELECT number, name, address, case  when province = 7 then 'Ciudad de La Habana'  when province = 22 then 'Santiago de Cuba'  when province = 21 then 'Guantánamo'  when province = 23 then 'Granma'  when province = 24 then 'Holguín'  when province = 31 then 'Las Tunas'  when province = 32 then 'Camagüey'  when province = 33 then 'Ciego de Ávila'  when province = 41 then 'Sancti Spíritus'  when province = 42 then 'Villa Clara'  when province = 43 then 'Cienfuegos'  when province = 45 then 'Matanzas'  when province = 46 then 'Isla de la Juventud'  when province = 47 then 'La Habana'  when province = 48 then 'Pinar del Río'  else province end as province FROM 'main'.'movil' WHERE number LIKE '%{nmbr}%' AND name LIKE '%{nam}%' AND address LIKE '%{addr}%';").format(nmbr=nmbr, nam=nam, addr=addr)
             self.model.setQuery(query)
-            self.model.setHeaderData(0, QtCore.Qt.Horizontal, "Numero")
+            self.model.setHeaderData(0, QtCore.Qt.Horizontal, _translate(None, 'Número', None))
             self.model.setHeaderData(1, QtCore.Qt.Horizontal, "Nombre")
-            self.model.setHeaderData(2, QtCore.Qt.Horizontal, "Direccion")
+            self.model.setHeaderData(2, QtCore.Qt.Horizontal, _translate(None, 'Dirección', None))
+            self.model.setHeaderData(3, QtCore.Qt.Horizontal, "Provincia")
             self.statusbar.showMessage('Total de resultados: ' + str(self.model.rowCount()))
 
     def search_fix(self):
@@ -240,29 +263,48 @@ class QGuide(QtGui.QMainWindow):
             QtGui.QMessageBox.critical(
                 self,
                 'Error',
-                'No se pueden realizar consultas sobre campos vacios')
+                _translate(None, 'No se pueden realizar consultas sobre campos vacíos', None))
         else:
-            query = ("SELECT number, name, address FROM 'main'.'fix' WHERE number LIKE '%{nmbr}%' AND name LIKE '%{nam}%' AND address LIKE '%{addr}%';").format(nmbr=nmbr, nam=nam, addr=addr)
+            if (self.checkButtonSearch.isChecked()):
+                query = ("SELECT ('(' || province || ') ' || number) as number, name, address, case  when province = 7 then 'Ciudad de La Habana'  when province = 22 then 'Santiago de Cuba'  when province = 21 then 'Guantánamo'  when province = 23 then 'Granma'  when province = 24 then 'Holguín'  when province = 31 then 'Las Tunas'  when province = 32 then 'Camagüey'  when province = 33 then 'Ciego de Ávila'  when province = 41 then 'Sancti Spíritus'  when province = 42 then 'Villa Clara'  when province = 43 then 'Cienfuegos'  when province = 45 then 'Matanzas'  when province = 46 then 'Isla de la Juventud'  when province = 47 then 'La Habana'  when province = 48 then 'Pinar del Río'  else province end as province FROM 'main'.'fix' WHERE number = '{nmbr}';").format(nmbr=nmbr)
+            else:
+                query = ("SELECT ('(' || province || ') ' || number) as number, name, address, case  when province = 7 then 'Ciudad de La Habana'  when province = 22 then 'Santiago de Cuba'  when province = 21 then 'Guantánamo'  when province = 23 then 'Granma'  when province = 24 then 'Holguín'  when province = 31 then 'Las Tunas'  when province = 32 then 'Camagüey'  when province = 33 then 'Ciego de Ávila'  when province = 41 then 'Sancti Spíritus'  when province = 42 then 'Villa Clara'  when province = 43 then 'Cienfuegos'  when province = 45 then 'Matanzas'  when province = 46 then 'Isla de la Juventud'  when province = 47 then 'La Habana'  when province = 48 then 'Pinar del Río'  else province end as province FROM 'main'.'fix' WHERE number LIKE '%{nmbr}%' AND name LIKE '%{nam}%' AND address LIKE '%{addr}%';").format(nmbr=nmbr, nam=nam, addr=addr)
             self.model.setQuery(query)
-            self.model.setHeaderData(0, QtCore.Qt.Horizontal, "Numero")
+            self.model.setHeaderData(0, QtCore.Qt.Horizontal, _translate(None, 'Número', None))
             self.model.setHeaderData(1, QtCore.Qt.Horizontal, "Nombre")
-            self.model.setHeaderData(2, QtCore.Qt.Horizontal, "Direccion")
+            self.model.setHeaderData(2, QtCore.Qt.Horizontal, _translate(None, 'Dirección', None))
+            self.model.setHeaderData(3, QtCore.Qt.Horizontal, "Provincia")
             self.statusbar.showMessage('Total de resultados: ' + str(self.model.rowCount()))
 
     def about(self):
-        QtGui.QMessageBox.about(
-                self,
-                'Q-Guide',
-                '<p>Q-Guide es un front-end para la base de datos de ETECSA</p>'
-                '<p>Copyright &copy; 2014 <a href=mailto:"ozkar.garcell@gmail.com">Ozkar L. Garcell</a> & <a href=mailto:"dhunterkde@gmail.com">Manuel E. Gutierrez</a></p>')
+			QtGui.QMessageBox.about(
+				self,
+				'Q-Guide',
+				'<p>Q-Guide es un front-end para la base de datos de ETECSA</p>'
+				'<p>Copyright &copy; 2014 <a href=mailto:"ozkar.garcell@gmail.com">Ozkar L. Garcell</a> & <a href=mailto:"dhunterkde@gmail.com">Manuel E. Gutierrez</a> & </p>'
+				'<p>Colaboradores:</p>'
+				'<p><a href=mailto:"leonardolopezgiron@gmail.com">Leonardo Lopez Giron</a></p>')
 
+    def processTrayAction(self, reason):
+        if reason == QtGui.QSystemTrayIcon.DoubleClick:
+            if(self.isVisible()):
+                self.hide()
+            else:
+                self.showNormal()
+
+    def processCheckAction(self, action):
+        if action:
+            self.nameLine.setEnabled(False)
+            self.addressLine.setEnabled(False)
+        else:
+            self.nameLine.setEnabled(True)
+            self.addressLine.setEnabled(True)
 
 if __name__ == '__main__':
     import sys
     app = QtGui.QApplication(sys.argv)
     if not QtGui.QSystemTrayIcon.isSystemTrayAvailable():
-        QtGui.QMessageBox.critical(None, "Systray",
-                "I couldn't detect any system tray on this system.")
+        QtGui.QMessageBox.critical(None, "Systray", "I couldn't detect any system tray on this system.")
         sys.exit(1)
     qguide = QGuide()
     qguide.show()

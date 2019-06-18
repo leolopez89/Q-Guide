@@ -1,19 +1,16 @@
-Q-Guide
-=========
+# Q-Guide
 
-Q-Guide is (yet) another frontend to the ETECSA users database.
+Q-Guide is a frontend to the ETECSA users database.
 
-Aim
-----
+## Aim
+
 The main goal of Q-Guide is create a sleek an intuitive UI, and perform clean and fast querys to the ETECSA users database.
 
-Version
-----
+## Version
 
 2.0
 
-Tech
------------
+## Tech
 
 Q-Guide uses a number of open source projects to work properly:
 
@@ -23,18 +20,25 @@ Q-Guide uses a number of open source projects to work properly:
 * [Coffee] - fuel used for coding
 * [Heavy Metal] - Hell Yeah!!
 
-Installation
---------------
+## Requeriments
+
+`Ubuntu`
+
+```sh
+sudo apt install python-qt4 python-sip libqt4-sql-sqlite python-qt4-sql
+```
+
+## Installation
 
 ```sh
 git clone https://github.com/codeshard/Q-Guide
 cd Q-Guide
 python q-guide.py
 ```
+
 You must also have the ETECSA users database, commonly named **etecsa.db** and put it inside the *database* directory inside the application.
 
-License
-----
+## License
 
 Apache v2.0
 
